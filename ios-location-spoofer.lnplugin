@@ -14,7 +14,7 @@ address = input,"",tag=地址搜索,desc=填地名；cron 每5分钟联网解析
 configHost = input,"http://192.168.31.10:3007",tag=配置服务器,desc=NAS 即时同步版；不要末尾斜杠
 configToken = input,"",tag=配置Token,desc=必填才能读 loc.json（与 configUrl 二选一）
 configUrl = input,"",tag=远程配置URL,desc=完整 loc.json 地址；与上两项二选一
-debug = switch,true,tag=调试日志,desc=建议开启，Loon 日志搜 Location spoofer
+debug = switch,false,tag=调试日志,desc=默认关闭，仅排障时开启；关闭时只保留异常日志
 
 [Script]
 http-request ^https:\/\/gs-loc\.apple\.com\/location-spoofer\/save(?:\?.*)?$ script-path=https://raw.githubusercontent.com/riddikuluswen/ios-location-spoofer/refs/heads/main/location-spoofer-loon-settings.js, requires-body=false, timeout=10, tag=iOS Location Spoofer Instant Sync, argument=[{configHost},{configToken},{configUrl},{debug}]

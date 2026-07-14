@@ -92,7 +92,7 @@ latitude=39.9042&longitude=116.4074
 | `verticalAccuracy` | 1000 | 垂直精度 |
 | `altitude` | 530 | 海拔 |
 | `failOpen` | true | 出错放行原数据 |
-| `debug` | false | 调试日志 |
+| `debug` | false | 调试日志；默认关闭，仅排障时开启 |
 
 ## 文件清单
 
