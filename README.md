@@ -57,7 +57,7 @@ https://raw.githubusercontent.com/riddikuluswen/ios-location-spoofer/refs/heads/
 
 1. 导入 `ios-location-spoofer.lnplugin` 后，在 **设置 → 插件** 里打开插件配置页。
 2. 配置服务器默认为 `http://192.168.31.10:3007`，另行填写 NAS 部署时生成的 Token。
-3. 用 Safari 打开 NAS 选点页并点击保存。页面先更新 NAS 的 `loc.json`，再由 Loon 拦截 `/loon-sync` 请求，将同一份坐标直接写入本机缓存，无需等待定时任务。
+3. 用 Safari 打开 NAS 选点页并点击保存。页面先更新 NAS 的 `loc.json`，再请求 `https://gs-loc.apple.com/location-spoofer/save`。Loon 在请求发出前拦截并将同一份坐标直接写入本机缓存，无需等待定时任务。这里使用 Apple 定位域名，是为了避免局域网地址被 Loon 的 LAN/bypass 规则绕过。
 4. 定时任务保留为网络异常时的兜底同步。NAS 关闭后，Loon继续使用最后一次有效缓存。
 5. 必须开启 Loon 的 MITM 并信任证书。改坐标后按系统版本要求重新触发定位；调试时在 Loon 日志搜索 `Location spoofer`。
 

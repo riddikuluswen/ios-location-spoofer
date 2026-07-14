@@ -1,5 +1,5 @@
 // Loon 即时同步入口。
-// 选点页请求 NAS 的 /loon-sync 时，由 Loon 在请求发出前拦截，
+// 选点页请求 gs-loc.apple.com/location-spoofer/save 时，由 Loon 在请求发出前拦截，
 // 将最新配置直接写入 location-spoofer.js 使用的持久化缓存。
 
 (function () {

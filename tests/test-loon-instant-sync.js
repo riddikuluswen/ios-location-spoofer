@@ -33,7 +33,7 @@ function run(url, initialStore) {
   return { store, response: JSON.parse(result.response.body), status: result.response.status };
 }
 
-const saved = run("http://192.168.31.10:3007/loon-sync?lat=39.9042&lng=116.4074&altitude=50&horizontalAccuracy=20&verticalAccuracy=100");
+const saved = run("https://gs-loc.apple.com/location-spoofer/save?lat=39.9042&lng=116.4074&altitude=50&horizontalAccuracy=20&verticalAccuracy=100");
 assert.strictEqual(saved.status, 200);
 assert.strictEqual(saved.response.success, true);
 const savedEntry = JSON.parse(saved.store.location_spoofer_remote_cfg);
@@ -43,14 +43,14 @@ assert.strictEqual(savedEntry.data.longitude, 116.4074);
 assert.strictEqual(savedEntry.data.enabled, true);
 
 const restored = run(
-  "http://192.168.31.10:3007/loon-sync?enabled=false&lat=39.9042&lng=116.4074",
+  "https://gs-loc.apple.com/location-spoofer/save?enabled=false&lat=39.9042&lng=116.4074",
   saved.store
 );
 assert.strictEqual(restored.status, 200);
 assert.strictEqual(restored.response.enabled, false);
 assert.strictEqual(JSON.parse(restored.store.location_spoofer_remote_cfg).data.enabled, false);
 
-const invalid = run("http://192.168.31.10:3007/loon-sync?lat=200&lng=116.4074");
+const invalid = run("https://gs-loc.apple.com/location-spoofer/save?lat=200&lng=116.4074");
 assert.strictEqual(invalid.status, 400);
 assert.strictEqual(invalid.response.success, false);
 

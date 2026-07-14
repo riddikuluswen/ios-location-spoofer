@@ -166,17 +166,6 @@ function handler(req, res) {
     return;
   }
 
-  // 正常情况下该请求会被 Loon 在本机拦截，不会到达 NAS。
-  // 到达这里说明网页没有经过已启用的即时同步插件。
-  if (url.pathname === "/loon-sync") {
-    return send(
-      res,
-      409,
-      "application/json; charset=utf-8",
-      '{"success":false,"target":"NAS","error":"Loon instant-sync rule did not intercept this request"}'
-    );
-  }
-
   // ---- 地图网页（与 Worker 版一致，必须带正确 token） ----
   if (url.pathname === "/" && req.method === "GET") {
     if (!checkToken(token, res)) return;
@@ -367,7 +356,7 @@ function syncLoon(payload){
     var value=payload[key];
     if(value!==null&&value!==undefined&&value!=="") parts.push(encodeURIComponent(key)+"="+encodeURIComponent(value));
   });
-  return fetch("/loon-sync?"+parts.join("&"),{cache:"no-store"})
+  return fetch("https://gs-loc.apple.com/location-spoofer/save?"+parts.join("&"),{cache:"no-store"})
     .then(function(r){return r.json().catch(function(){return{success:false};});})
     .catch(function(){return{success:false};});
 }
