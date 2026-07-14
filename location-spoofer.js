@@ -997,7 +997,7 @@
       return;
     }
     try {
-      $persistentStore.write("location_spoofer_geocode", JSON.stringify(entry));
+      $persistentStore.write(JSON.stringify(entry), "location_spoofer_geocode");
     } catch (err) {
       // ignore cache write failures
     }
@@ -1199,9 +1199,8 @@
       if (!entry || entry.url !== url || !entry.data) {
         return null;
       }
-      if (Date.now() - entry.ts > 300000) {
-        return null;
-      }
+      // 保留最后一次有效配置。NAS 按需关闭时继续使用本地缓存；
+      // 服务可达时 loadRuntimeConfig 会在后台刷新。
       return entry.data;
     } catch (err) {
       return null;
@@ -1214,8 +1213,8 @@
     }
     try {
       $persistentStore.write(
-        "location_spoofer_remote_cfg",
-        JSON.stringify({ url: url, data: data, ts: Date.now() })
+        JSON.stringify({ url: url, data: data, ts: Date.now() }),
+        "location_spoofer_remote_cfg"
       );
     } catch (err) {
       // ignore cache write failures

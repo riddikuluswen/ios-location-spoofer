@@ -1,0 +1,26 @@
+services:
+  loon-location-picker:
+    image: node:22-alpine
+    container_name: loon-location-picker
+    working_dir: /app
+    command: ["node", "/app/server.js"]
+    user: "1000:100"
+    init: true
+    environment:
+      TZ: Asia/Shanghai
+      PORT: "8080"
+      TOKEN: "${TOKEN}"
+    ports:
+      - "192.168.31.10:3007:8080"
+    volumes:
+      - ./server.js:/app/server.js:ro
+      - ./loc.json:/app/loc.json
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 128m
+    cpus: 0.25
+    restart: "no"

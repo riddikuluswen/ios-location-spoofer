@@ -166,6 +166,17 @@ function handler(req, res) {
     return;
   }
 
+  // 正常情况下该请求会被 Loon 在本机拦截，不会到达 NAS。
+  // 到达这里说明网页没有经过已启用的即时同步插件。
+  if (url.pathname === "/loon-sync") {
+    return send(
+      res,
+      409,
+      "application/json; charset=utf-8",
+      '{"success":false,"target":"NAS","error":"Loon instant-sync rule did not intercept this request"}'
+    );
+  }
+
   // ---- 地图网页（与 Worker 版一致，必须带正确 token） ----
   if (url.pathname === "/" && req.method === "GET") {
     if (!checkToken(token, res)) return;
@@ -335,11 +346,30 @@ function toggleEnabled(){
   var want = !enabledState;
   fetch("/enable?token="+encodeURIComponent(token),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({enabled:want})})
     .then(function(r){
-      if(r.ok){ enabledState=want; updateEnabledUI();
-        toast(want ? "已开启伪造，记得关开定位生效" : "已恢复真实定位，记得关开定位生效"); }
-      else toast("切换失败 "+r.status);
+      if(!r.ok) throw new Error("切换失败 "+r.status);
+      return r.json();
     })
-    .catch(function(){ toast("网络错误"); });
+    .then(function(d){
+      enabledState=want; updateEnabledUI();
+      return syncLoon({enabled:want,lat:d.latitude,lng:d.longitude,altitude:d.altitude,
+        horizontalAccuracy:d.horizontalAccuracy,verticalAccuracy:d.verticalAccuracy});
+    })
+    .then(function(result){
+      if(result&&result.success) toast(want ? "已开启并即时同步到 Loon" : "已恢复真实定位并即时同步到 Loon");
+      else toast("NAS 已保存；Loon 即时同步未触发");
+    })
+    .catch(function(err){ toast(err&&err.message?err.message:"网络错误"); });
+}
+
+function syncLoon(payload){
+  var parts=[];
+  Object.keys(payload||{}).forEach(function(key){
+    var value=payload[key];
+    if(value!==null&&value!==undefined&&value!=="") parts.push(encodeURIComponent(key)+"="+encodeURIComponent(value));
+  });
+  return fetch("/loon-sync?"+parts.join("&"),{cache:"no-store"})
+    .then(function(r){return r.json().catch(function(){return{success:false};});})
+    .catch(function(){return{success:false};});
 }
 
 function dispPos(){return datum==="gcj"?GCJ.wgs2gcj(WGS.lat,WGS.lng):[WGS.lat,WGS.lng];}
@@ -363,13 +393,18 @@ function movePin(dispLat,dispLng){
   fetchElevation(WGS.lat,WGS.lng).then(function(el){ if(el!==null)$("alt").value=Math.round(el); info(); });
 }
 
-// 保存定位点到设备（写入 loc.json，Shadowrocket 才会用）
+// 保存到 NAS，并通过 Loon 的本机请求脚本即时写入持久化缓存
 function commit(){
   var payload={lat:WGS.lat, lng:WGS.lng,
     altitude:numOrNull("alt"), horizontalAccuracy:numOrNull("hacc"), verticalAccuracy:numOrNull("vacc")};
   fetch("/set?token="+encodeURIComponent(token),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
-    .then(function(r){ if(r.ok){ saved=true; enabledState=true; updateEnabledUI(); toast("已保存 ✓ 记得关开定位生效"); } else { toast("保存失败 "+r.status); } })
-    .catch(function(){ toast("网络错误"); });
+    .then(function(r){if(!r.ok)throw new Error("保存失败 "+r.status);return r.json();})
+    .then(function(){saved=true;enabledState=true;updateEnabledUI();return syncLoon(payload);})
+    .then(function(result){
+      if(result&&result.success) toast("已保存并即时同步到 Loon ✓");
+      else toast("已保存到 NAS；Loon 即时同步未触发");
+    })
+    .catch(function(err){toast(err&&err.message?err.message:"网络错误");});
 }
 
 // 搜索：列出多个候选，点选只移动地图视野（不动定位点、不保存）
