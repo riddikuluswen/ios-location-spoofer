@@ -58,7 +58,7 @@ https://raw.githubusercontent.com/riddikuluswen/ios-location-spoofer/refs/heads/
 1. 导入 `ios-location-spoofer.lnplugin` 后，在 **设置 → 插件** 里打开插件配置页。
 2. 配置服务器默认为 `http://192.168.31.10:3007`，另行填写 NAS 部署时生成的 Token。
 3. 用 Safari 打开 NAS 选点页并点击保存。页面先更新 NAS 的 `loc.json`，再请求 `https://gs-loc.apple.com/location-spoofer/save`。Loon 在请求发出前拦截并将同一份坐标直接写入本机缓存，无需等待定时任务。这里使用 Apple 定位域名，是为了避免局域网地址被 Loon 的 LAN/bypass 规则绕过。
-4. 定时任务保留为网络异常时的兜底同步。NAS 关闭后，Loon继续使用最后一次有效缓存。
+4. 插件不包含定时任务。NAS 关闭后，Loon继续使用最后一次即时同步成功的本地缓存。
 5. 必须开启 Loon 的 MITM 并信任证书。改坐标后按系统版本要求重新触发定位；调试时在 Loon 日志搜索 `Location spoofer`。
 
 即时同步成功时，选点页会提示“已保存并即时同步到 Loon”，Loon 日志会出现：
@@ -71,7 +71,7 @@ Location spoofer instant sync -> enabled=true, lat=纬度, lng=经度
 
 NAS Docker 示例位于 [`location-picker/docker-compose.loon.example.yaml`](location-picker/docker-compose.loon.example.yaml)。复制 `.env.example` 为 `.env`、复制 `loc.example.json` 为 `loc.json`，生成随机 Token 后再启动；示例使用 `restart: "no"`，不会随 NAS 自动启动。
 
-> 日志若出现 `Evaluate script timeout` 或 `zip decompress error:-3`：更新插件并重载 Loon，确认 Instant Sync、Prepare、Response 和定时同步脚本均已启用。
+> 日志若出现 `Evaluate script timeout` 或 `zip decompress error:-3`：更新插件并重载 Loon，确认 Instant Sync、Prepare 和 Response 三条脚本均已启用。
 
 ## 改坐标
 
@@ -87,7 +87,6 @@ latitude=39.9042&longitude=116.4074
 |------|--------|------|
 | `latitude` | 37.3349 | 目标纬度 |
 | `longitude` | -122.00902 | 目标经度 |
-| `address` | （空） | 地址搜索（Loon 插件 UI 填写，联网解析为经纬度，优先于手动经纬度） |
 | `horizontalAccuracy` | 39 | 水平精度 |
 | `verticalAccuracy` | 1000 | 垂直精度 |
 | `altitude` | 530 | 海拔 |
